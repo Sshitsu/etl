@@ -5,6 +5,7 @@ import com.shtisu.etl.model.FinalRecord;
 import com.shtisu.etl.model.HourlyData;
 import com.shtisu.etl.model.OpenMeteoResponse;
 import com.shtisu.etl.util.UnitConverter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.item.ItemProcessor;
 
 import java.time.Duration;
@@ -14,34 +15,57 @@ import java.util.List;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.IntStream;
 
-public class FinalRecordItemProcessor implements ItemProcessor<OpenMeteoResponse, FinalRecord> {
 
+/**
+ * {@code FinalRecordItemProcessor} является реализацией Spring Batch {@link org.springframework.batch.item.ItemProcessor}
+ * и отвечает за преобразование входного ответа от OpenMeteo API ({@link com.shtisu.etl.model.OpenMeteoResponse})
+ * в окончательную модель {@link com.shtisu.etl.model.FinalRecord}.
+ *
+ * <p>В процессе обработки выполняются следующие шаги:
+ * <ol>
+ *   <li>Заполнение базовых метаданных (широта, долгота, дата, рассвет, закат, продолжительность дня).</li>
+ *   <li>Вычисление агрегатов за последние 24 часа: средние значения температур, относительной влажности, точки росы,
+ *       кажущейся температуры, скорости ветра, видимости и суммарные осадки.</li>
+ *   <li>Вычисление агрегатов за световой период (между рассветом и закатом): аналогичные показатели,
+ *       но только за дневные часы.</li>
+ *   <li>Извлечение точечных значений первого часового измерения и конвертация единиц.</li>
+ *   <li>Установка метки времени {@code fetchedAt}.</li>
+ * </ol>
+ *
+ * <p>Утилиты для агрегации и преобразования единиц вынесены в приватные методы.
+ */
+public class FinalRecordItemProcessor implements ItemProcessor<OpenMeteoResponse, FinalRecord> {
+    /**
+     * Основной метод обработки. Преобразует {@code OpenMeteoResponse} в {@code FinalRecord}.
+     *
+     * @param resp входной объект, содержащий сырые данные hourly и daily
+     * @return заполненный объект {@code FinalRecord}
+     * @throws Exception если при заполнении данных произошла ошибка
+     */
     @Override
     public FinalRecord process(OpenMeteoResponse resp) {
         FinalRecord rec = new FinalRecord();
 
-        // 1. Метаданные
+        // Методы заполняют поля финальный таблицы а именно высчитывают средние значения за 24 часа и т.д
         fillMetadata(rec, resp);
 
-        // 2. 24‑часовые агрегаты
         fill24hAggregates(rec, resp.getHourly());
 
-        // 3. Агрегаты за световой день
         fillDaylightAggregates(rec, resp.getHourly(), rec.getSunriseIso(), rec.getSunsetIso());
 
-        // 4. Точечные конверсии
+
         fillPointValues(rec, resp.getHourly());
 
-        // 5. fetchedAt
+        // Время когда были заполнены данные
         rec.setFetchedAt(Instant.now());
 
         return rec;
     }
 
     /**
-     * Заполняет базовые метаданные (широту, долготу, дату, рассвет, закат и продолжительность дня).
+     * Заполняет базовые метаданные (широту, долготу, дату, рассвет, закат и продолжительность дня)
      */
-    private void fillMetadata(FinalRecord rec, OpenMeteoResponse resp) {
+    private void fillMetadata(@NotNull FinalRecord rec, @NotNull OpenMeteoResponse resp) {
         rec.setLatitude(resp.getLatitude());
         rec.setLongitude(resp.getLongitude());
 
@@ -56,9 +80,9 @@ public class FinalRecordItemProcessor implements ItemProcessor<OpenMeteoResponse
         rec.setDaylightHours(Duration.between(sunrise, sunset).toHours());
     }
     /**
-     * Считает 24‑часовые агрегаты по температурам, осадкам, скорости ветра, видимости и т.д..
+     * Считает 24‑часовые агрегаты по температурам, осадкам, скорости ветра, видимости и т.д
      */
-    private void fill24hAggregates(FinalRecord rec, HourlyData h) {
+    private void fill24hAggregates(@NotNull FinalRecord rec, @NotNull HourlyData h) {
 
         rec.setAvgTemperature2m24h   (averageAndConvert(h.getTemperature2m(), UnitConverter::fahrenheitToCelsius));
         rec.setAvgRelativeHumidity2m24h(average(h.getRelativeHumidity2m()));
@@ -75,10 +99,11 @@ public class FinalRecordItemProcessor implements ItemProcessor<OpenMeteoResponse
         rec.setTotalSnowfall24h      (sumAndConvert(h.getSnowfall(), UnitConverter::inchToMillimeter));
     }
     /**
-     *  Считает агрегаты по температурам, осадкам, скорости ветра, видимости и т.д. но только внутри светового дня (по индексам между рассветом и закатом).
+     *  Считает агрегаты по температурам, осадкам, скорости ветра, видимости и т.д. но только внутри светового дня (по индексам между рассветом и закатом)
      */
-    private void fillDaylightAggregates(FinalRecord rec, HourlyData h, Instant sunrise, Instant sunset) {
+    private void fillDaylightAggregates(@NotNull FinalRecord rec, @NotNull HourlyData h, Instant sunrise, Instant sunset) {
 
+        // Индексы между восходом и закатом
         List<Integer> idx = IntStream.range(0, h.getTime().size())
                 .filter(i -> {
                     Instant t = Instant.ofEpochSecond(h.getTime().get(i));
@@ -100,9 +125,9 @@ public class FinalRecordItemProcessor implements ItemProcessor<OpenMeteoResponse
         rec.setTotalSnowfallDaylight      (sumAndConvert(h.getSnowfall(), idx, UnitConverter::inchToMillimeter));
     }
     /**
-     *  Точечные конверсии первого часового значения (температура, ветер, осадки и т.д.).
+     *  Точечные конверсии первого часового значения (температура, ветер, осадки и т.д.)
      */
-    private void fillPointValues(FinalRecord rec, HourlyData h) {
+    private void fillPointValues(@NotNull FinalRecord rec, @NotNull HourlyData h) {
         rec.setTemperature2mCelsius       (UnitConverter.fahrenheitToCelsius(h.getTemperature2m().get(0)));
         rec.setApparentTemperatureCelsius (UnitConverter.fahrenheitToCelsius(h.getApparentTemperature().get(0)));
         rec.setTemperature80mCelsius      (UnitConverter.fahrenheitToCelsius(h.getTemperature80m().get(0)));
@@ -117,9 +142,9 @@ public class FinalRecordItemProcessor implements ItemProcessor<OpenMeteoResponse
     }
 
     /**
-     * Среднее по любому списку числовых значений (Double, Integer и т.д.).
+     * Среднее по любому списку числовых значений (Double, Integer и т.д.)
      */
-    private double average(List<? extends Number> data) {
+    private double average(@NotNull List<? extends Number> data) {
         return data.stream()
                 .mapToDouble(Number::doubleValue)
                 .average()
@@ -127,27 +152,41 @@ public class FinalRecordItemProcessor implements ItemProcessor<OpenMeteoResponse
     }
 
     /**
-     * Среднее по любому списку числовых значений, но только по индексам из idx.
+     * Среднее по любому списку числовых значений, но только по индексам из idx
      */
-    private double average(List<? extends Number> data, List<Integer> idx) {
+    private double average(List<? extends Number> data, @NotNull List<Integer> idx) {
+
         return idx.stream()
                 .mapToDouble(i -> data.get(i).doubleValue())
                 .average()
                 .orElse(0.0);
     }
 
-    private double averageAndConvert(List<Double> data, ToDoubleFunction<Double> conv) {
+    /**
+     * Среднее по списку Double и преобразование значений используя нужный конвектор.
+     */
+    private double averageAndConvert(List<Double> data, @NotNull ToDoubleFunction<Double> conv) {
         return conv.applyAsDouble(average(data));
     }
-    private double averageAndConvert(List<Double> data, List<Integer> idx, ToDoubleFunction<Double> conv) {
+    /**
+     * Среднее по списку Double и преобразование значений используя нужный конвектор, но только по индексам из idx
+     * */
+    private double averageAndConvert(@NotNull List<Double> data, @NotNull List<Integer> idx, @NotNull ToDoubleFunction<Double> conv) {
         return conv.applyAsDouble(
                 idx.stream().mapToDouble(data::get).average().orElse(0.0)
         );
     }
-    private double sumAndConvert(List<Double> data, ToDoubleFunction<Double> conv) {
+
+    /**
+     * Сумма значений
+     */
+    private double sumAndConvert(@NotNull List<Double> data, @NotNull ToDoubleFunction<Double> conv) {
         return conv.applyAsDouble(data.stream().mapToDouble(Double::doubleValue).sum());
     }
-    private double sumAndConvert(List<Double> data, List<Integer> idx, ToDoubleFunction<Double> conv) {
+    /**
+     * Сумма значений, но только по индексам из idx
+     */
+    private double sumAndConvert(@NotNull List<Double> data, @NotNull List<Integer> idx, @NotNull ToDoubleFunction<Double> conv) {
         return conv.applyAsDouble(
                 idx.stream().mapToDouble(data::get).sum()
         );

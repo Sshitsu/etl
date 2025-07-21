@@ -15,7 +15,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
     @Test
      void parseSampleJson_shouldPopulateAllTopLevelFields() throws IOException {
 
-        String json = Files.readString(Paths.get("D:\\IdeaProjects\\etl\\src\\test\\java\\resources\\sample-open-meteo.json"));
+        String json = Files.readString(Paths.get("D:\\IdeaProjects\\etl\\src\\test\\resources\\sample-open-meteo.json"));
         OpenMeteoResponse resp = OpenMeteoApiJsonParser.parse(json);
         System.out.println(resp);
 
@@ -31,7 +31,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
         assertThat(resp.getDaily().getTime()).isNotNull();
         assertThat(resp.getHourly().getTime()).isNotNull();
         assertThat(resp.getTimezone()).isEqualTo("Asia/Novosibirsk");
-        System.out.println(resp.getHourly().getTemperature2m());
+
 
 
 

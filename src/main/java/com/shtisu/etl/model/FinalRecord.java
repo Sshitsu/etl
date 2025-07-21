@@ -5,6 +5,10 @@ import lombok.Data;
 import java.time.Instant;
 import java.time.LocalDate;
 
+
+/**
+ * Класс описывает все нужные поля для модели, которую мы отпровляем в итоговую таблицу
+ */
 @Data
 public class FinalRecord {
 
@@ -54,5 +58,6 @@ public class FinalRecord {
     private double showersMm;
     private double snowfallMm;
 
+    // Время когда был добавлен объект в csv или базу данных
     private Instant fetchedAt;
 }

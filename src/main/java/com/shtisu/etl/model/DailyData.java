@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Вспомогательная модель
+ */
 @Data
 public class DailyData {
     @JsonProperty("time")

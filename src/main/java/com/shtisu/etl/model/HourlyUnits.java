@@ -2,7 +2,9 @@ package com.shtisu.etl.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-
+/**
+ * Вспомогательная модель
+ */
 @Data
 public class HourlyUnits {
     @JsonProperty("time")

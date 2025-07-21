@@ -61,7 +61,7 @@ class FinalRecordItemProcessorTest {
         hourly.setTemperature2m(tempF);
         hourly.setRain(rainIn);
 
-        // ←—— here’s the extra setters you need:
+
         hourly.setRelativeHumidity2m(rhPct);
         hourly.setDewPoint2m(tempF);
         hourly.setApparentTemperature(tempF);
@@ -74,7 +74,7 @@ class FinalRecordItemProcessorTest {
         hourly.setSnowfall(rainIn);
         hourly.setSoilTemperature0cm(tempF);
         hourly.setSoilTemperature6cm(tempF);
-        // —————————————————————————————————————————
+
 
         resp.setHourly(hourly);
 

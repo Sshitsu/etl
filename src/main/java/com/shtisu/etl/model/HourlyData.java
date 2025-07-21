@@ -4,16 +4,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
-
+/**
+ * Вспомогательная модель
+ */
 @Data
 public class HourlyData {
     @JsonProperty("time")
     private List<Long> time;
     @JsonProperty("temperature_2m")
     private List<Double> temperature2m;
-    @JsonProperty("relative_humidity_2m")
+    @JsonProperty("relativehumidity_2m")
     private List<Integer> relativeHumidity2m;
-    @JsonProperty("dew_point_2m")
+    @JsonProperty("dewpoint_2m")
     private List<Double> dewPoint2m;
     @JsonProperty("apparent_temperature")
     private List<Double> apparentTemperature;
@@ -21,13 +23,13 @@ public class HourlyData {
     private List<Double> temperature80m;
     @JsonProperty("temperature_120m")
     private List<Double> temperature120m;
-    @JsonProperty("wind_speed_10m")
+    @JsonProperty("windspeed_10m")
     private List<Double> windSpeed10m;
-    @JsonProperty("wind_speed_80m")
+    @JsonProperty("windspeed_80m")
     private List<Double> windSpeed80m;
-    @JsonProperty("wind_direction_10m")
+    @JsonProperty("winddirection_10m")
     private List<Integer> windDirection10m;
-    @JsonProperty("wind_direction_80m")
+    @JsonProperty("winddirection_80m")
     private List<Integer> windDirection80m;
     @JsonProperty("visibility")
     private List<Double> visibility;

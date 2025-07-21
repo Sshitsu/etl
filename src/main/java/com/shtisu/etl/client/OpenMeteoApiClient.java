@@ -10,8 +10,11 @@ import java.util.StringJoiner;
 
 import com.shtisu.etl.model.OpenMeteoResponse;
 import com.shtisu.etl.parser.OpenMeteoApiJsonParser;
+import lombok.extern.slf4j.Slf4j;
 
-
+/**
+ * Класс для обращения к Open Meteo API
+ */
 public class OpenMeteoApiClient {
 
     private final HttpClient http;
@@ -23,6 +26,16 @@ public class OpenMeteoApiClient {
         this.baseUrl = baseUrl;
     }
 
+    /**
+     *
+     * @param latitude Задем широту
+     * @param longitude Задаем долготу
+     * @param start Задаем начала отрезка времени по которму хотим получить данные
+     * @param end Задаем конец
+     * @return Возвращает OpenMeteoResponse который предстовляет модель описывающие все поля Json из API запроса
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public OpenMeteoResponse fetch(double latitude,
                                    double longitude,
                                    LocalDate start,
@@ -44,22 +57,41 @@ public class OpenMeteoApiClient {
         return OpenMeteoApiJsonParser.parse(resp.body());
     }
 
+
     private String buildUrl(double lat, double lon, LocalDate start, LocalDate end) {
-        // Пример: https://api.open‑meteo.com/v1/forecast?latitude=52.0&longitude=4.0&start_date=2025‑07‑01&end_date=2025‑07‑01&hourly=temperature_2m,…
         StringJoiner sj = new StringJoiner("&", baseUrl + "/v1/forecast?", "");
-        sj.add("latitude=" + lat);
-        sj.add("longitude=" + lon);
-        sj.add("start_date=" + start);
-        sj.add("end_date="   + end);
-        sj.add("hourly=time,temperature_2m" +
-                ",relative_humidity_2m,dew_point_2m" +
-                ",apparent_temperature,temperature_80m" +
-                ",temperature_120m,wind_speed_10m" +
-                ",wind_speed_80m,visibility" +
-                ",rain,showers,snowfall" +
-                ",soil_temperature_0cm" +
-                ",soil_temperature_6cm");
-        sj.add("daily=time,sunrise,sunset");
+        sj.add("latitude="     + lat);
+        sj.add("longitude="    + lon);
+        sj.add("start_date="   + start);
+        sj.add("end_date="     + end);
+
+        // Указываем все нужные поля
+        sj.add("hourly=temperature_2m"
+                + ",relativehumidity_2m"
+                + ",dewpoint_2m"
+                + ",apparent_temperature"
+                + ",temperature_80m"
+                + ",temperature_120m"
+                + ",windspeed_10m"
+                + ",windspeed_80m"
+                + ",winddirection_10m"
+                + ",winddirection_80m"
+                + ",visibility"
+                + ",evapotranspiration"
+                + ",rain"
+                + ",showers"
+                + ",snowfall"
+                + ",soil_temperature_0cm"
+                + ",soil_temperature_6cm");
+
+        sj.add("daily=sunrise,sunset,daylight_duration");
+
+        sj.add("timezone=auto");
+
+        // Указываем формат времени
+        sj.add("timeformat=unixtime");
+
         return sj.toString();
     }
+
 }
