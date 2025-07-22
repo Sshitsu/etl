@@ -22,7 +22,7 @@ public class TestWheather {
 
         OpenMeteoApiClient client = new OpenMeteoApiClient("https://api.open-meteo.com");
 
-        LocalDate start = LocalDate.of(2025,7,1), end = LocalDate.of(2025,7,1);
+        LocalDate start = LocalDate.of(2025,6,1), end = LocalDate.of(2025,7,1);
         List<FinalRecord> a = new ArrayList<>();
 
 
@@ -33,17 +33,12 @@ public class TestWheather {
         Path DbBloom = Path.of("D:\\IdeaProjects\\etl\\cache\\DataBaseWeather.bloom");
         Path CsvBloom = Path.of("D:\\IdeaProjects\\etl\\cache\\CsvWeather.bloom");
 
-        for (int i = 0; i < 10; i++){
+        double lat = -90 + Math.random() * 180;
+        // рандомная долгота от -180 до +180
+        double lon = -180 + Math.random() * 360;
 
-            // рандомная широта от -90 до +90
-            double lat = -90 + Math.random() * 180;
-            // рандомная долгота от -180 до +180
-            double lon = -180 + Math.random() * 360;
-
-            OpenMeteoResponse resp = client.fetch(lat, lon, start, end);
-
-            a.add(finalRecordItemProcessor.process(resp));
-        }
+        OpenMeteoResponse resp = client.fetch(lat, lon, start, end);
+        a = finalRecordItemProcessor.processRange(resp);
 
         DataBaseItemWriter dbWriter = new DataBaseItemWriter(DbBloom, 100, 0.01);
         dbWriter.write(a);

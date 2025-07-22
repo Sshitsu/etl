@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class FinalRecordItemProcessorTest {
 
-    private ItemProcessor<OpenMeteoResponse, FinalRecord> processor;
+    private FinalRecordItemProcessor processor;
 
     @BeforeEach
     void setUp() {
@@ -78,25 +78,25 @@ class FinalRecordItemProcessorTest {
 
         resp.setHourly(hourly);
 
-        FinalRecord rec = processor.process(resp);
+        List<FinalRecord> rec = processor.processRange(resp);
 
 
-        assertThat(rec.getLatitude()).isEqualTo(52.0);
-        assertThat(rec.getLongitude()).isEqualTo(4.0);
-        assertThat(rec.getDate()).isEqualTo(LocalDate.of(2025, 7, 15));
-        assertThat(rec.getDaylightHours()).isEqualTo(23.0);
+        assertThat(rec.get(0).getLatitude()).isEqualTo(52.0);
+        assertThat(rec.get(0).getLongitude()).isEqualTo(4.0);
+        assertThat(rec.get(0).getDate()).isEqualTo(LocalDate.of(2025, 7, 15));
+        assertThat(rec.get(0).getDaylightHours()).isEqualTo(23.0);
 
         double expectedTempC = UnitConverter.fahrenheitToCelsius(50.0);
-        assertThat(rec.getAvgTemperature2m24h()).isEqualTo(expectedTempC);
+        assertThat(rec.get(0).getAvgTemperature2m24h()).isEqualTo(expectedTempC);
 
 
         double expectedRainMm = UnitConverter.inchToMillimeter(24.0);
-        assertThat(rec.getTotalRain24h()).isEqualTo(expectedRainMm);
+        assertThat(rec.get(0).getTotalRain24h()).isEqualTo(expectedRainMm);
 
-        assertThat(rec.getAvgTemperature2mDaylight()).isEqualTo(expectedTempC);
-        assertThat(rec.getTotalRainDaylight()).isEqualTo(expectedRainMm);
+        assertThat(rec.get(0).getAvgTemperature2mDaylight()).isEqualTo(expectedTempC);
+        assertThat(rec.get(0).getTotalRainDaylight()).isEqualTo(expectedRainMm);
 
-        assertThat(rec.getFetchedAt()).isNotNull();
+        assertThat(rec.get(0).getFetchedAt()).isNotNull();
         System.out.println(rec);
     }
 }

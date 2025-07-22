@@ -3,7 +3,7 @@ package com.shtisu.etl.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 /**
- * Класс описывает поля которые есть в Json который мы получили из API запроса или просто считали
+ * Класс описывает поля Json, который мы получили из API запроса или просто считали
  */
 @Data
 public class OpenMeteoResponse {
