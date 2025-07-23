@@ -51,7 +51,7 @@ public class DataBaseItemWriter implements AutoCloseable {
     private static final String PLACEHOLDERS = String.join(
             ", ", Collections.nCopies(COLUMN_LIST.split(",").length, "?")
     );
-
+    // Строка для вствки в базу данных (ON CONFLICT  DO NOTHING) дополнительно защищает от дубликатов
     private static final String INSERT_SQL =
                     "INSERT INTO final_records (" + COLUMN_LIST + ") " +
                     "VALUES (" + PLACEHOLDERS + ") " +
