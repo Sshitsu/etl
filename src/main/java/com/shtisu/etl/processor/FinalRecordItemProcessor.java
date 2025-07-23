@@ -12,13 +12,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 
 /**
@@ -30,8 +28,12 @@ public class FinalRecordItemProcessor  {
      */
     public List<FinalRecord> processRange(@NotNull OpenMeteoResponse resp) {
 
-        DailyData d = resp.getDaily();
-        HourlyData h = resp.getHourly();
+        DailyData d = Objects.requireNonNull(resp.getDaily(), "daily is null");
+        HourlyData h = Objects.requireNonNull(resp.getHourly(), "hourly is null");
+
+        validateSizes(h); // см. ниже
+
+
 
 
         Map<LocalDate, List<Integer>> dayToIdx = IntStream.range(0,h.getTime().size())
@@ -65,10 +67,10 @@ public class FinalRecordItemProcessor  {
             rec.setSunsetIso(sunset);
             rec.setDaylightHours(Duration.between(sunrise, sunset).toHours());
 
-            // 2. 24h агрегаты по всем индексам дня
+            // 24h агрегаты по всем индексам дня
             fill24hAggregates(rec, h, dayIdx);
 
-            // 3. Индексы только светового времени для этого дня
+            // Индексы только светового времени для этого дня
             List<Integer> daylightIdx = dayIdx.stream()
                     .filter(i -> {
                         Instant t = Instant.ofEpochSecond(h.getTime().get(i));
@@ -77,7 +79,7 @@ public class FinalRecordItemProcessor  {
                     .toList();
             fillDaylightAggregates(rec, h, daylightIdx);
 
-            // 4. Точечные значения — возьмём первый час дня
+            // Точечные значения — возьмём первый час дня
             fillPointValues(rec, h, dayIdx.get(0));
 
             rec.setFetchedAt(Instant.now());
@@ -195,5 +197,18 @@ public class FinalRecordItemProcessor  {
         return conv.applyAsDouble(
                 idx.stream().mapToDouble(data::get).sum()
         );
+    }
+    private void validateSizes(HourlyData h) {
+        int n = h.getTime().size();
+        Stream.of(
+                h.getTemperature2m(), h.getRelativeHumidity2m(), h.getDewPoint2m(),
+                h.getApparentTemperature(), h.getTemperature80m(), h.getTemperature120m(),
+                h.getWindSpeed10m(), h.getWindSpeed80m(), h.getVisibility(),
+                h.getRain(), h.getShowers(), h.getSnowfall(),
+                h.getSoilTemperature0cm(), h.getSoilTemperature6cm()
+        ).forEach(list -> {
+            if (list == null) throw new IllegalArgumentException("One of hourly lists is null");
+            if (list.size() != n) throw new IllegalArgumentException("Hourly list size mismatch: " + list.size() + " != " + n);
+        });
     }
 }

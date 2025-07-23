@@ -1,5 +1,8 @@
 package com.shtisu.etl.util;
 
+/**
+ * Вспомогательный класс для конвертаций данных
+ */
 public class UnitConverter {
 
     /** Переводит температуру из Fahrenheit в Celsius.  */

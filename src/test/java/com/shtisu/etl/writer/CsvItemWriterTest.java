@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CsvItemWriterTest {
 
+    // Создаем временные файлы для ввода и BloomFilter
     @TempDir
     Path tempDir;
     private Path csvPath;
@@ -42,7 +43,7 @@ class CsvItemWriterTest {
 
     @Test
     void writeCreateAndWriteOnlyDistinctFinalRecords() throws Exception{
-
+        // Создаем FinalRecord record который является финальной моделью со всеми полями
         FinalRecord record = new FinalRecord();
         record.setLatitude(10.0);
         record.setLongitude(20.0);
@@ -94,6 +95,7 @@ class CsvItemWriterTest {
 
         List<String> lines = Files.readAllLines(csvPath, StandardCharsets.UTF_8);
 
+        // Проверяем что записался только один, остальные с помощью bloomFilter были отсечены
         assertEquals(2, lines.size(), "CSV должен содержать header и одну запись");
 
     }

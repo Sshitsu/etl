@@ -22,7 +22,7 @@ import java.util.List;
  * при больших колличествах данных O(n) может работать слишком долгго. Но у способа с BloomFilter так же есть недостатки возможны коллизий при получений хэша у ключа,
  * а также придется выделить память для хранения ключей на диске, но даже для огромного файла ключи не будут весить слишком много
  */
-public class CsvItemWriter {
+public class CsvItemWriter implements AutoCloseable {
 
 
     private final Path outputCsvPath;
@@ -87,7 +87,7 @@ public class CsvItemWriter {
         boolean bloomFileExists   = Files.exists(bloomPath);
         boolean bloomFileNotEmpty = bloomFileExists && Files.size(bloomPath) > 0;
 
-        // Use a local variable to avoid multiple assignments to the final field
+        // Проверяем BloomFilter если его не существует, тогда создаем
         BloomFilter<CharSequence> filter;
         if (bloomFileNotEmpty) {
             try (InputStream is = Files.newInputStream(bloomPath, StandardOpenOption.READ)) {
@@ -96,7 +96,6 @@ public class CsvItemWriter {
                         Funnels.stringFunnel(StandardCharsets.UTF_8)
                 );
             } catch (IOException e) {
-                // corrupted or truncated → fall back to a fresh filter
                 filter = BloomFilter.create(
                         Funnels.stringFunnel(StandardCharsets.UTF_8),
                         expectedEntries,
@@ -104,7 +103,6 @@ public class CsvItemWriter {
                 );
             }
         } else {
-            // file absent or empty → start fresh
             filter = BloomFilter.create(
                     Funnels.stringFunnel(StandardCharsets.UTF_8),
                     expectedEntries,
@@ -228,5 +226,17 @@ public class CsvItemWriter {
         line[i] = r.getFetchedAt().toString();
 
         return line;
+    }
+
+    @Override
+    public void close() throws Exception {
+        // Сохраняем BloomFilter на диск ещё раз на случай,
+        // если после последней записи были добавлены ключи.
+        try (OutputStream os = Files.newOutputStream(
+                bloomPath,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            bloomFilter.writeTo(os);
+        }
     }
 }

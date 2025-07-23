@@ -15,6 +15,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
     @Test
      void parseSampleJson_shouldPopulateAllTopLevelFields() throws IOException {
 
+       // Просто считываем поля из Json и проверяем их (Все поля проверять не стал но стоит это сделать в будующем)
+
         String json = Files.readString(Paths.get("D:\\IdeaProjects\\etl\\src\\test\\resources\\sample-open-meteo.json"));
         OpenMeteoResponse resp = OpenMeteoApiJsonParser.parse(json);
         System.out.println(resp);

@@ -14,7 +14,6 @@ import java.io.IOException;
  * Класс считывает поля Json и преобразовывает их в объект класса OpenMeteoResponse
  */
 public class OpenMeteoApiJsonParser {
-
     private static final ObjectMapper MAPPER  = new ObjectMapper()
             .setPropertyNamingStrategy(new PropertyNamingStrategies.SnakeCaseStrategy())
             .registerModule(new JavaTimeModule())

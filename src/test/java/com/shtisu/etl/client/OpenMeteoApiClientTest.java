@@ -17,7 +17,8 @@ class OpenMeteoApiClientTest {
 
     @Test
     void fetch_shouldReturnParsedResponse() throws IOException, InterruptedException {
-
+        // Создаем Mock Web Serever, записывем в него в качестве ответа данные из sample-open-meteo.json
+        // Получаем ответ и проверяем что данные получили
         try (MockWebServer server = new MockWebServer()) {
             String sampleJson = Files.readString(Path.of("D:\\IdeaProjects\\etl\\src\\test\\resources\\sample-open-meteo.json"));
             server.enqueue(new MockResponse()

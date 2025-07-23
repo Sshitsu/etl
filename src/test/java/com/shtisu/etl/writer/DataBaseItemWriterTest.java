@@ -35,8 +35,10 @@ public class DataBaseItemWriterTest {
 
         this.writer = new DataBaseItemWriter(bloomFile, 100, 0.01);
 
+        // Используем базу данных H2 in memory
         DataSource ds = DataSourceFactory.getDataSource();
         try (Connection conn = ds.getConnection();
+             // Создаем таблицу
              Statement stmt = conn.createStatement()) {
             stmt.execute("CREATE TABLE IF NOT EXISTS final_records (" +
                     "latitude DOUBLE, longitude DOUBLE, date DATE, sunrise_iso TIMESTAMP, sunset_iso TIMESTAMP, daylight_hours DOUBLE, " +
@@ -57,7 +59,7 @@ public class DataBaseItemWriterTest {
     @Test
     public void writeIntoDataBaseTableOnlyDistinctValue() throws IOException, SQLException {
 
-
+        // Создаем и заполняем данными нашу модель
         FinalRecord record = new FinalRecord();
         record.setLatitude(10.0);
         record.setLongitude(20.0);
@@ -109,6 +111,7 @@ public class DataBaseItemWriterTest {
         DataBaseItemWriter dataBaseItemWriter = new DataBaseItemWriter(bloomFile, 100, 0.01);
         dataBaseItemWriter.write(records);
 
+        // Проверяем что в базе данных тольк одна запись
         DataSource ds = DataSourceFactory.getDataSource();
         try (Connection conn = ds.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM final_records");
@@ -116,8 +119,6 @@ public class DataBaseItemWriterTest {
             assertTrue(rs.next());
             assertEquals(1, rs.getInt(1), "База данных должна содержать только одну запись");
         }
-
-
 
 
     }

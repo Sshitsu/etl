@@ -23,7 +23,7 @@ import java.util.List;
  * DataBaseItemWriter с использованием BloomFilter для предотвращения вставки дубликатов
  * на основе ключа date+latitude+longitude.
  */
-public class DataBaseItemWriter {
+public class DataBaseItemWriter implements AutoCloseable {
     // DataSource для подключенияк базе данных
     private final DataSource ds;
     private final Path bloomPath;
@@ -183,4 +183,15 @@ public class DataBaseItemWriter {
     }
 
 
+    @Override
+    public void close() throws Exception {
+        // Сохраняем BloomFilter на диск ещё раз на случай,
+        // если после последней записи были добавлены ключи.
+        try (OutputStream os = Files.newOutputStream(
+                bloomPath,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            bloomFilter.writeTo(os);
+        }
+    }
 }

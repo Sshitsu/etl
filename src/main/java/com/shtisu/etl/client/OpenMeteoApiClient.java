@@ -57,7 +57,9 @@ public class OpenMeteoApiClient {
         return OpenMeteoApiJsonParser.parse(resp.body());
     }
 
-
+    /**
+     * Строем запрос к Open Meteo Api
+     */
     private String buildUrl(double lat, double lon, LocalDate start, LocalDate end) {
         StringJoiner sj = new StringJoiner("&", baseUrl + "/v1/forecast?", "");
         sj.add("latitude="     + lat);

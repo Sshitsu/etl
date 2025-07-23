@@ -23,8 +23,10 @@ class FinalRecordItemProcessorTest {
         processor = new FinalRecordItemProcessor();
     }
 
+
     @Test
     void process_basic24hAggregates() throws Exception {
+        // Просто задаем OpenMeteoResponse resp заполняем поля и после выполнения processRange() проверяем что все поля заполнились
         OpenMeteoResponse resp = new OpenMeteoResponse();
         resp.setLatitude(52.0);
         resp.setLongitude(4.0);

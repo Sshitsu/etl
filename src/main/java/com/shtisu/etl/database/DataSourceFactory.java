@@ -32,6 +32,8 @@ public class DataSourceFactory {
             properties.load(in);
 
             HikariConfig config = new HikariConfig();
+            // Берем данные для базы данных из application.properties
+            // Настраиваем setConnectionTimeout и т.д
             config.setJdbcUrl(properties.getProperty("db.url"));
             config.setUsername(properties.getProperty("db.user"));
             config.setPassword(properties.getProperty("db.password"));
